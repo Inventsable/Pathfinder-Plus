@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <Dropzone @read="copyAction" auto-read />
     <!-- Context menu dynamically changes -->
     <Menus refresh debug :context="dynamicContextMenu" />
 
@@ -32,7 +33,6 @@
             v-for="(item, i) in list"
             :key="i"
             :disabled="!canUsePathfinder"
-            @click="clickHandler(item.icon, $event)"
             @clickevt="clickHandler(item.icon, $event)"
             @mouseenter="currentTool = item.icon"
             @mouseleave="currentTool = null"
@@ -63,7 +63,9 @@
 </template>
 
 <script>
-import { evalScript } from "brutalism";
+import { evalScript, copy } from "brutalism";
+import actionlist from "@/assets/actions.js";
+import actions from "@/assets/actionList.js";
 export default {
   components: {
     Icons: require("./components/Icons.vue").default,
@@ -109,9 +111,7 @@ export default {
     },
   },
   mounted() {
-    console.log("MOUNTING...");
     this.reset();
-    console.log(this.prefs);
     this.getPrefs();
   },
   data: () => ({
@@ -120,6 +120,7 @@ export default {
     selectionLength: 0,
     isGridDisplay: null,
     enablePreview: true,
+    isAlt: false,
     inside: false,
     size: {
       width: window.innerWidth,
@@ -170,6 +171,14 @@ export default {
     },
   },
   methods: {
+    copyAction(evt) {
+      let temp = evt[0].split("\r\n");
+      let copyString = "";
+      temp.forEach((line, i) => {
+        copyString += `"${line}"${i < temp.length - 1 ? " +\r\n" : ""}`;
+      });
+      copy(copyString);
+    },
     reset() {
       this.currentTool = null;
       this.isGridDisplay = window.innerWidth < 150;
@@ -177,9 +186,17 @@ export default {
     assignResponsiveUI(v, i, a) {
       this.useResponsiveToolbar = a;
     },
-    clickHandler(item, evt) {
-      console.log(item);
-      console.log(evt);
+    async clickHandler(item, evt) {
+      if (/(minus\sfront|unite|intersect|exclude)/i.test(item))
+        if (evt.altKey) item += "-alt";
+      // console.log(item);
+      // console.log(evt);
+      if (this.selectionLength > 1) {
+        let result = await evalScript(`executeAction('${item}')`);
+        console.log(result);
+      } else {
+        console.log(`Can't do it`);
+      }
     },
     setPrefs(value = null) {
       if (!value) value = this.prefs;
