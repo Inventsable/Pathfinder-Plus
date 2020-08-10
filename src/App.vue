@@ -1,13 +1,19 @@
 <template>
   <div id="app">
     <Menus refresh debug />
+    <Watcher
+      v-model="selectionLength"
+      property="app.selection.length"
+      :interval="200"
+    />
     <Panel
-      @mouseenter="preview = true"
-      @mouseleave="preview = false"
-      @resize="measurements"
+      @mouseenter="inside = true"
+      @mouseleave="inside = false"
+      @resize="(val) => (size.width = val.width)"
     >
       <Wrapper>
         <Anno
+          v-if="notMini"
           style="height: 16px;"
           size="10px"
           :color="
@@ -15,19 +21,34 @@
           "
           >{{ anno }}</Anno
         >
-        <Button-Group>
+        <Grid v-if="isGridDisplay" :template="dynamicGridTemplate">
+          <Button
+            v-for="(item, i) in list"
+            :key="i"
+            :disabled="!canUsePathfinder"
+            @mouseenter="currentTool = item.icon"
+            @mouseleave="currentTool = null"
+            ><Icons :name="item.icon"
+          /></Button>
+        </Grid>
+        <Button-Group v-else>
           <Button
             width="30px"
             flat
             v-for="(item, i) in list"
             :key="i"
+            :disabled="!canUsePathfinder"
             @mouseenter="currentTool = item.icon"
             @mouseleave="currentTool = null"
             ><Icons :name="item.icon"
           /></Button>
         </Button-Group>
-        <Divider />
+        <div v-show="notMini">
+          <Divider />
+          <Anno size="10px">{{ selectionLength }}</Anno>
+        </div>
         <Anno size="10px">{{ size.width }}</Anno>
+        <Anno size="12px">{{ isGridDisplay }}</Anno>
       </Wrapper>
     </Panel>
   </div>
@@ -48,12 +69,29 @@ export default {
         ? this.capitalizePhrase(this.currentTool)
         : "None";
     },
+    canUsePathfinder() {
+      return this.selectionLength > 1;
+    },
+    notMini() {
+      return this.size.width > 70;
+    },
+    dynamicGridTemplate() {
+      if (this.size.width < 90) return `1fr`;
+      else if (this.size.width < 140) return "1fr 1fr";
+      else return "1fr 1fr 1fr";
+    },
+  },
+  mounted() {
+    this.reset();
   },
   data: () => ({
     currentTool: "",
+    selectionLength: 0,
+    isGridDisplay: null,
+    inside: false,
     size: {
-      width: 20,
-      height: 20,
+      width: window.innerWidth,
+      height: window.innerHeight,
     },
     list: [
       {
@@ -88,27 +126,39 @@ export default {
       },
     ],
   }),
-  methods: {
-    enterTest() {
-      console.log("ENTER");
+  watch: {
+    inside(val) {
+      // if (!val) this.selectionLength = 0;
     },
-    exitTest() {
-      console.log("EXIT");
+    "size.width"(val) {
+      console.log(val);
+      this.isGridDisplay = val < 180;
+    },
+    isGridDisplay(val) {
+      console.log("GRID DISPLAY:", val);
+    },
+  },
+  methods: {
+    reset() {
+      this.currentTool = null;
+      this.isGridDisplay = window.innerWidth < 150;
+      console.log(window.innerWidth < 150, window.innerWidth);
+      console.log(this.isGridDisplay);
     },
     capitalizePhrase(phrase) {
-      console.log(phrase);
       function capitalize(string) {
         return string[0].toUpperCase() + string.substring(1);
       }
-      if (!phrase.length) return "";
-      if (!/\s/.test(phrase)) return capitalize(phrase);
-      console.log(phrase.split(" "));
-      return phrase
-        .split(" ")
-        .map((item) => {
-          return capitalize(item);
-        })
-        .join(" ");
+      return !phrase.length
+        ? ""
+        : !/\s/.test(phrase)
+        ? capitalize(phrase)
+        : phrase
+            .split(" ")
+            .map((item) => {
+              return capitalize(item);
+            })
+            .join(" ");
     },
     measurements(evt) {
       console.log(evt);
@@ -134,7 +184,7 @@ export default {
 <style>
 @media screen and (max-width: 56px) {
   .panel {
-    padding: 8px auto;
+    padding: 8px 2px;
   }
   .row > * {
     margin-right: 0px;
