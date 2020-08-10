@@ -1,6 +1,11 @@
 <template>
   <div id="app">
-    <Menus refresh debug />
+    <!-- Context menu dynamically changes -->
+    <Menus refresh debug :context="dynamicContextMenu" />
+
+    <!-- 
+      New component that reports the scripting value of app.selection.length every 200ms 
+    -->
     <Watcher
       v-model="selectionLength"
       property="app.selection.length"
@@ -21,16 +26,20 @@
           "
           >{{ anno }}</Anno
         >
+        <!-- If panel is thin, become CSS grid so buttons expand in size -->
         <Grid v-if="isGridDisplay" :template="dynamicGridTemplate">
           <Button
             v-for="(item, i) in list"
             :key="i"
             :disabled="!canUsePathfinder"
+            @click="clickHandler(item.icon, $event)"
+            @clickevt="clickHandler(item.icon, $event)"
             @mouseenter="currentTool = item.icon"
             @mouseleave="currentTool = null"
             ><Icons :name="item.icon"
           /></Button>
         </Grid>
+        <!-- If panel is wide, use flexbox -->
         <Button-Group v-else>
           <Button
             width="30px"
@@ -43,12 +52,11 @@
             ><Icons :name="item.icon"
           /></Button>
         </Button-Group>
-        <div v-show="notMini">
+        <div v-show="notMini" v-if="enablePreview">
           <Divider />
           <Anno size="10px">{{ selectionLength }}</Anno>
+          <Preview :mode="currentTool" />
         </div>
-        <Anno size="10px">{{ size.width }}</Anno>
-        <Anno size="12px">{{ isGridDisplay }}</Anno>
       </Wrapper>
     </Panel>
   </div>
@@ -59,6 +67,7 @@ import { evalScript } from "brutalism";
 export default {
   components: {
     Icons: require("./components/Icons.vue").default,
+    Preview: require("./components/Preview.vue").default,
   },
   computed: {
     hasAnno() {
@@ -70,24 +79,47 @@ export default {
         : "None";
     },
     canUsePathfinder() {
-      return this.selectionLength > 1;
+      return this.selectionLength > 1 || !this.useResponsiveToolbar;
     },
     notMini() {
       return this.size.width > 70;
     },
     dynamicGridTemplate() {
-      if (this.size.width < 90) return `1fr`;
-      else if (this.size.width < 140) return "1fr 1fr";
-      else return "1fr 1fr 1fr";
+      return this.size.width < 90
+        ? `1fr`
+        : this.size.width < 140
+        ? "1fr 1fr"
+        : "1fr 1fr 1fr";
+    },
+    dynamicContextMenu() {
+      return [
+        {
+          label: "Responsive UI",
+          checkable: true,
+          checked: this.useResponsiveToolbar,
+          callback: this.assignResponsiveUI,
+        },
+      ];
+    },
+    prefs() {
+      return {
+        useResponsiveToolbar: this.useResponsiveToolbar,
+        enablePreview: this.enablePreview,
+      };
     },
   },
   mounted() {
+    console.log("MOUNTING...");
     this.reset();
+    console.log(this.prefs);
+    this.getPrefs();
   },
   data: () => ({
     currentTool: "",
+    useResponsiveToolbar: true,
     selectionLength: 0,
     isGridDisplay: null,
+    enablePreview: true,
     inside: false,
     size: {
       width: window.innerWidth,
@@ -127,23 +159,38 @@ export default {
     ],
   }),
   watch: {
-    inside(val) {
-      // if (!val) this.selectionLength = 0;
-    },
     "size.width"(val) {
-      console.log(val);
       this.isGridDisplay = val < 180;
     },
-    isGridDisplay(val) {
-      console.log("GRID DISPLAY:", val);
+    prefs: {
+      handler(val) {
+        this.setPrefs(val);
+      },
+      deep: true,
     },
   },
   methods: {
     reset() {
       this.currentTool = null;
       this.isGridDisplay = window.innerWidth < 150;
-      console.log(window.innerWidth < 150, window.innerWidth);
-      console.log(this.isGridDisplay);
+    },
+    assignResponsiveUI(v, i, a) {
+      this.useResponsiveToolbar = a;
+    },
+    clickHandler(item, evt) {
+      console.log(item);
+      console.log(evt);
+    },
+    setPrefs(value = null) {
+      if (!value) value = this.prefs;
+      window.localStorage.setItem("pathfinder", JSON.stringify(value));
+    },
+    getPrefs() {
+      let data = window.localStorage.getItem("pathfinder");
+      data = !data ? this.prefs : JSON.parse(data);
+      Object.keys(data).forEach((key) => {
+        this[key] = data[key];
+      });
     },
     capitalizePhrase(phrase) {
       function capitalize(string) {
@@ -159,23 +206,6 @@ export default {
               return capitalize(item);
             })
             .join(" ");
-    },
-    measurements(evt) {
-      console.log(evt);
-      this.size.width = evt.width;
-      this.size.height = evt.height;
-    },
-    // Can invoke any function as await evalScript(`functionName('${parameterVar}')`) if script is preloaded
-    // Check out the "script-path" prop of <Panel> component above for easy script file load.
-    async runTestScript() {
-      let result = await evalScript(`
-        function test() {
-          alert('Hello world!')
-          return 'result from JSX file'
-        }
-        test();
-      `);
-      console.log(result);
     },
   },
 };
@@ -193,8 +223,20 @@ export default {
 
 .button.flat {
   box-sizing: border-box;
-  border: red !important;
-  width: 30px !important;
   padding: 4px 2px;
+}
+
+.button {
+  background: transparent !important;
+}
+
+.button:hover {
+  background: var(--button-flat-hover) !important;
+  border-color: var(--button-flat-hover-border);
+}
+
+.button:active {
+  background: var(--button-flat-active) !important;
+  border-color: var(--button-flat-active-border);
 }
 </style>
