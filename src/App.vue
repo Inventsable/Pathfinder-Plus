@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <Dropzone @read="copyAction" auto-read />
     <!-- Context menu dynamically changes -->
     <Menus refresh debug :context="dynamicContextMenu" />
 
@@ -19,8 +18,8 @@
     >
       <Wrapper>
         <Anno
-          v-if="notMini"
-          style="height: 16px;"
+          v-if="notMini && this.showAnno"
+          style="height: 16px; white-space: nowrap;"
           size="10px"
           :color="
             `var(--color-${this.hasAnno ? 'default' : 'scrollbar-arrow'})`
@@ -54,7 +53,7 @@
           /></Button>
         </Button-Group>
         <!-- <Button label="test" @click="testExport" /> -->
-        <div v-show="notMini" v-if="false">
+        <div v-show="notMini" v-if="enablePreview">
           <Divider />
           <Preview ref="preview" :mode="currentTool" :inside="inside" />
         </div>
@@ -73,7 +72,7 @@ export default {
   },
   computed: {
     hasAnno() {
-      return this.currentTool && this.currentTool.length;
+      return this.showAnno && this.currentTool && this.currentTool.length;
     },
     anno() {
       return this.currentTool
@@ -87,14 +86,20 @@ export default {
       return this.size.width > 70;
     },
     dynamicGridTemplate() {
-      return this.size.width < 90
+      return this.size.width < 88
         ? `1fr`
-        : this.size.width < 140
+        : this.size.width < 128
         ? "1fr 1fr"
         : "1fr 1fr 1fr";
     },
     dynamicContextMenu() {
       return [
+        {
+          label: "Show annotation",
+          checkable: true,
+          checked: this.showAnno,
+          callback: this.assignShowAnno,
+        },
         {
           label: "Responsive UI",
           checkable: true,
@@ -116,8 +121,8 @@ export default {
         {
           label: "Live preview",
           checkable: true,
-          enabled: false,
-          checked: false,
+          // enabled: false,
+          checked: this.enablePreview,
           callback: this.assignPreview,
         },
       ];
@@ -128,6 +133,7 @@ export default {
         enablePreview: this.enablePreview,
         combSelection: this.combSelection,
         hasExtraFuncs: this.hasExtraFuncs,
+        showAnno: this.showAnno,
       };
     },
     dynamicButtonList() {
@@ -148,6 +154,7 @@ export default {
     currentTool: "",
     useResponsiveToolbar: true,
     selectionLength: 0,
+    showAnno: true,
     hasExtraFuncs: true,
     combSelection: true,
     isGridDisplay: null,
@@ -212,7 +219,7 @@ export default {
   }),
   watch: {
     "size.width"(val) {
-      this.isGridDisplay = val < 180;
+      this.isGridDisplay = val < 160;
     },
     prefs: {
       handler(val) {
@@ -241,6 +248,9 @@ export default {
     reset() {
       this.currentTool = null;
       this.isGridDisplay = window.innerWidth < 150;
+    },
+    assignShowAnno(v, i, a) {
+      this.showAnno = a;
     },
     assignResponsiveUI(v, i, a) {
       this.useResponsiveToolbar = a;
@@ -305,6 +315,15 @@ export default {
 @media screen and (max-width: 56px) {
   .panel {
     padding: 8px 2px;
+  }
+  .row > * {
+    margin-right: 0px;
+  }
+}
+
+@media screen and (max-width: 80px) {
+  .panel {
+    padding: 8px 0px;
   }
   .row > * {
     margin-right: 0px;

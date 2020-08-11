@@ -1,6 +1,10 @@
 <template>
   <div class="preview-wrapper">
-    <runtime-template-compiler v-if="inside" :template="tempSVG" />
+    <Dropzone @read="testDrop" auto-read pure-svg />
+    <runtime-template-compiler
+      v-if="tempSVG && tempSVG.length"
+      :template="tempSVG"
+    />
   </div>
 </template>
 
@@ -33,25 +37,27 @@ export default {
     },
   },
   methods: {
-    test() {
-      console.log(this.mode);
+    testDrop(value) {
+      // console.log(value);
+      this.tempSVG = value.replace(/\<!--.*--\>\s/, "");
+      console.log(this.tempSVG);
     },
-    async grabSelection() {
-      await evalScript("createNewDocAndExport()");
-      // if (!fs.existsSync(`${spy.path.userData}/live-pathfinder`)) {
-      //   fs.mkdirSync(`${spy.path.userData}/live-pathfinder`);
-      // }
-      // let path = `${spy.path.userData}/live-pathfinder/temp.svg`.replace(
-      //   /\\/gm,
-      //   "/"
-      // );
-      // let result = await evalScript(`test('${path}')`);
-      // this.tempSVG = fs.readFileSync(
-      //   `${spy.path.userData}/live-pathfinder/temp.svg`,
-      //   "utf-8"
-      // );
-      // console.log(this.tempSVG);
-    },
+    // async grabSelection() {
+    //   await evalScript("createNewDocAndExport()");
+    //   // if (!fs.existsSync(`${spy.path.userData}/live-pathfinder`)) {
+    //   //   fs.mkdirSync(`${spy.path.userData}/live-pathfinder`);
+    //   // }
+    //   // let path = `${spy.path.userData}/live-pathfinder/temp.svg`.replace(
+    //   //   /\\/gm,
+    //   //   "/"
+    //   // );
+    //   // let result = await evalScript(`test('${path}')`);
+    //   // this.tempSVG = fs.readFileSync(
+    //   //   `${spy.path.userData}/live-pathfinder/temp.svg`,
+    //   //   "utf-8"
+    //   // );
+    //   // console.log(this.tempSVG);
+    // },
   },
 };
 </script>

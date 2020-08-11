@@ -16,53 +16,6 @@ function executeAction(name, opts) {
   else app.selection = null;
 }
 
-function createNewDocAndExport() {
-  app.executeMenuCommand("copy");
-  let lastDoc = app.activeDocument;
-  let newDoc = app.documents.add();
-  app.activeDocument = newDoc;
-  app.executeMenuCommand("pasteFront");
-  app.activeDocument.artboards[0].artboardRect = getBoundingBoxOfSelection();
-  exportSVG(path);
-  // newDoc.remove();
-  // alert("Done");
-}
-
-function test(path) {
-  let artboards = app.activeDocument.artboards;
-  let activeIndex = artboards.getActiveArtboardIndex();
-  let bbox = getBoundingBoxOfSelection();
-  let newAB = artboards.add(bbox);
-  artboards.setActiveArtboardIndex(artboards.length - 1);
-  exportSVG(path);
-  newAB.remove();
-  artboards.setActiveArtboardIndex(activeIndex);
-}
-
-function setOptionsForSVGExport() {
-  var options = new ExportOptionsWebOptimizedSVG();
-  options.coordinatePrecision = 2;
-  options.fontType = SVGFontType.OUTLINEFONT;
-  options.svgId = SVGIdType.SVGIDREGULAR;
-  options.cssProperties = SVGCSSPropertyLocation.STYLEELEMENTS;
-  return options;
-}
-
-function exportSVG(path) {
-  app.activeDocument.exportFile(
-    new File(path),
-    ExportType.WOSVG,
-    setOptionsForSVGExport()
-  );
-}
-
-// function exportSVG(doc, name, bounds, exportOptions) {
-//   doc.artboards[0].artboardRect = bounds;
-
-//   var file = new File(exportFolder.fsName + "/" + name);
-//   doc.exportFile(file, ExportType.SVG, exportOptions);
-// }
-
 function getBoundingBoxOfSelection() {
   let selection = get("selection");
   let x1 = selection.map((item) => item.visibleBounds[0]).min();
@@ -696,5 +649,52 @@ function getActionByName(name) {
       ""
     );
 }
+
+// function createNewDocAndExport() {
+//   app.executeMenuCommand("copy");
+//   let lastDoc = app.activeDocument;
+//   let newDoc = app.documents.add();
+//   app.activeDocument = newDoc;
+//   app.executeMenuCommand("pasteFront");
+//   app.activeDocument.artboards[0].artboardRect = getBoundingBoxOfSelection();
+//   exportSVG(path);
+//   // newDoc.remove();
+//   // alert("Done");
+// }
+
+// function test(path) {
+//   let artboards = app.activeDocument.artboards;
+//   let activeIndex = artboards.getActiveArtboardIndex();
+//   let bbox = getBoundingBoxOfSelection();
+//   let newAB = artboards.add(bbox);
+//   artboards.setActiveArtboardIndex(artboards.length - 1);
+//   exportSVG(path);
+//   newAB.remove();
+//   artboards.setActiveArtboardIndex(activeIndex);
+// }
+
+// function setOptionsForSVGExport() {
+//   var options = new ExportOptionsWebOptimizedSVG();
+//   options.coordinatePrecision = 2;
+//   options.fontType = SVGFontType.OUTLINEFONT;
+//   options.svgId = SVGIdType.SVGIDREGULAR;
+//   options.cssProperties = SVGCSSPropertyLocation.STYLEELEMENTS;
+//   return options;
+// }
+
+// function exportSVG(path) {
+//   app.activeDocument.exportFile(
+//     new File(path),
+//     ExportType.WOSVG,
+//     setOptionsForSVGExport()
+//   );
+// }
+
+// function exportSVG(doc, name, bounds, exportOptions) {
+//   doc.artboards[0].artboardRect = bounds;
+
+//   var file = new File(exportFolder.fsName + "/" + name);
+//   doc.exportFile(file, ExportType.SVG, exportOptions);
+// }
 
 console.log("Host is fully loaded");
