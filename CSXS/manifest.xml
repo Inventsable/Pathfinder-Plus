@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<ExtensionManifest ExtensionBundleId="com.live-pathfinder" ExtensionBundleVersion="1.0.0" ExtensionBundleName="live-pathfinder" Version="8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ExtensionManifest ExtensionBundleId="com.live-pathfinder" ExtensionBundleVersion="1.0.1" ExtensionBundleName="live-pathfinder" Version="8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ExtensionList>
-    <Extension Id="com.live-pathfinder.panel" Version="1.0.0" />
+    <Extension Id="com.live-pathfinder.panel" Version="1.0.1" />
   </ExtensionList>
   <ExecutionEnvironment>
     <HostList><Host Name="ILST" Version="[23,99.9]" /></HostList>
@@ -16,8 +16,8 @@
     <Extension Id="com.live-pathfinder.panel">
       <DispatchInfo>
         <Resources>
-          <MainPath>./public/index-dev.html</MainPath>
-          <!-- <MainPath>./dist/index.html</MainPath> -->
+          <MainPath>./dist/index.html</MainPath>
+          <!-- <MainPath>./public/index-dev.html</MainPath> -->
           <CEFCommandLine>
             <Parameter>--enable-nodejs</Parameter>
             <Parameter>--mixed-context</Parameter>
@@ -39,7 +39,7 @@
               <Width>1000</Width>
             </MaxSize>
             <MinSize>
-              <Height>300</Height>
+              <Height>80</Height>
               <Width>40</Width>
             </MinSize>
           </Geometry>
