@@ -12,6 +12,7 @@
       :interval="200"
     />
     <Panel
+      script-path="./host/[appName]"
       @mouseenter="inside = true"
       @mouseleave="inside = false"
       @resize="(val) => (size.width = val.width)"
@@ -53,7 +54,7 @@
           /></Button>
         </Button-Group>
         <!-- <Button label="test" @click="testExport" /> -->
-        <div v-show="notMini" v-if="enablePreview">
+        <div v-show="notMini" v-if="false">
           <Divider />
           <Preview ref="preview" :mode="currentTool" :inside="inside" />
         </div>
@@ -121,8 +122,8 @@ export default {
         {
           label: "Live preview",
           checkable: true,
-          // enabled: false,
-          checked: this.enablePreview,
+          enabled: false,
+          checked: false,
           callback: this.assignPreview,
         },
       ];

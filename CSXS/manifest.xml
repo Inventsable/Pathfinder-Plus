@@ -43,7 +43,10 @@
               <Width>40</Width>
             </MinSize>
           </Geometry>
-          <Icons />
+          <Icons>
+             <Icon Type="Normal">./logoLight.png</Icon>
+             <Icon Type="DarkNormal">./logoDark.png</Icon>
+          </Icons>
         </UI>
       </DispatchInfo>
     </Extension>
