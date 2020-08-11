@@ -65,6 +65,9 @@ Vue.component("Toggle", Toggle);
 Vue.component("Watcher", Watcher);
 Vue.component("Wrapper", Wrapper);
 
+import RuntimeTemplateCompiler from "vue-runtime-template-compiler";
+Vue.use(RuntimeTemplateCompiler);
+
 new Vue({
   render: (h) => h(App),
 }).$mount("#app");

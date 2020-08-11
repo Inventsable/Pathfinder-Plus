@@ -1,7 +1,85 @@
 console.log("Host is online");
 
-function executeAction(name) {
+function executeAction(name, opts) {
+  let opts = JSON.parse(opts),
+    selection = [];
+  if (opts.combSelection)
+    selection = get("pageItems")
+      .filter((item) => {
+        return !item.selected;
+      })
+      .map((item) => {
+        return item.uuid;
+      });
   runAction(name);
+  if (opts.combSelection) selectInverse(selection);
+  else app.selection = null;
+}
+
+function createNewDocAndExport() {
+  app.executeMenuCommand("copy");
+  let lastDoc = app.activeDocument;
+  let newDoc = app.documents.add();
+  app.activeDocument = newDoc;
+  app.executeMenuCommand("pasteFront");
+  app.activeDocument.artboards[0].artboardRect = getBoundingBoxOfSelection();
+  exportSVG(path);
+  // newDoc.remove();
+  // alert("Done");
+}
+
+function test(path) {
+  let artboards = app.activeDocument.artboards;
+  let activeIndex = artboards.getActiveArtboardIndex();
+  let bbox = getBoundingBoxOfSelection();
+  let newAB = artboards.add(bbox);
+  artboards.setActiveArtboardIndex(artboards.length - 1);
+  exportSVG(path);
+  newAB.remove();
+  artboards.setActiveArtboardIndex(activeIndex);
+}
+
+function setOptionsForSVGExport() {
+  var options = new ExportOptionsWebOptimizedSVG();
+  options.coordinatePrecision = 2;
+  options.fontType = SVGFontType.OUTLINEFONT;
+  options.svgId = SVGIdType.SVGIDREGULAR;
+  options.cssProperties = SVGCSSPropertyLocation.STYLEELEMENTS;
+  return options;
+}
+
+function exportSVG(path) {
+  app.activeDocument.exportFile(
+    new File(path),
+    ExportType.WOSVG,
+    setOptionsForSVGExport()
+  );
+}
+
+// function exportSVG(doc, name, bounds, exportOptions) {
+//   doc.artboards[0].artboardRect = bounds;
+
+//   var file = new File(exportFolder.fsName + "/" + name);
+//   doc.exportFile(file, ExportType.SVG, exportOptions);
+// }
+
+function getBoundingBoxOfSelection() {
+  let selection = get("selection");
+  let x1 = selection.map((item) => item.visibleBounds[0]).min();
+  let x2 = selection.map((item) => item.visibleBounds[2]).max();
+  let y1 = selection.map((item) => item.visibleBounds[1]).max();
+  let y2 = selection.map((item) => item.visibleBounds[3]).min();
+  return [x1, y1, x2, y2];
+}
+
+function selectInverse(items) {
+  get("pageItems")
+    .filter((item) => {
+      return !items.includes(item.uuid);
+    })
+    .forEach((item) => {
+      item.selected = true;
+    });
 }
 
 function runAction(name) {
@@ -583,6 +661,36 @@ function getActionByName(name) {
       "			]" +
       "			/value 4" +
       "		}" +
+      "	}" +
+      "}" +
+      ""
+    );
+  else if (name == "clipping mask")
+    return (
+      "/version 3" +
+      "/name [ 15" +
+      "	4c6976652d5061746866696e646572" +
+      "]" +
+      "/isOpen 1" +
+      "/actionCount 1" +
+      "/action-1 {" +
+      "	/name [ 13" +
+      "		636c697070696e67206d61736b" +
+      "	]" +
+      "	/keyIndex 0" +
+      "	/colorIndex 0" +
+      "	/isOpen 1" +
+      "	/eventCount 1" +
+      "	/event-1 {" +
+      "		/useRulersIn1stQuadrant 0" +
+      "		/internalName (adobe_makeMask)" +
+      "		/localizedName [ 18" +
+      "			4d616b6520436c697070696e67204d61736b" +
+      "		]" +
+      "		/isOpen 0" +
+      "		/isOn 1" +
+      "		/hasDialog 0" +
+      "		/parameterCount 0" +
       "	}" +
       "}" +
       ""

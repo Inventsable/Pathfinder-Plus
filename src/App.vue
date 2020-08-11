@@ -30,10 +30,10 @@
         <!-- If panel is thin, become CSS grid so buttons expand in size -->
         <Grid v-if="isGridDisplay" :template="dynamicGridTemplate">
           <Button
-            v-for="(item, i) in list"
+            v-for="(item, i) in dynamicButtonList"
             :key="i"
             :disabled="!canUsePathfinder"
-            @clickevt="clickHandler(item.icon, $event)"
+            @clickevt="clickHandler(item, $event)"
             @mouseenter="currentTool = item.icon"
             @mouseleave="currentTool = null"
             ><Icons :name="item.icon"
@@ -44,18 +44,19 @@
           <Button
             width="30px"
             flat
-            v-for="(item, i) in list"
+            v-for="(item, i) in dynamicButtonList"
             :key="i"
+            @clickevt="clickHandler(item, $event)"
             :disabled="!canUsePathfinder"
             @mouseenter="currentTool = item.icon"
             @mouseleave="currentTool = null"
             ><Icons :name="item.icon"
           /></Button>
         </Button-Group>
-        <div v-show="notMini" v-if="enablePreview">
+        <!-- <Button label="test" @click="testExport" /> -->
+        <div v-show="notMini" v-if="false">
           <Divider />
-          <Anno size="10px">{{ selectionLength }}</Anno>
-          <Preview :mode="currentTool" />
+          <Preview ref="preview" :mode="currentTool" :inside="inside" />
         </div>
       </Wrapper>
     </Panel>
@@ -64,8 +65,7 @@
 
 <script>
 import { evalScript, copy } from "brutalism";
-import actionlist from "@/assets/actions.js";
-import actions from "@/assets/actionList.js";
+import spy from "cep-spy";
 export default {
   components: {
     Icons: require("./components/Icons.vue").default,
@@ -101,31 +101,82 @@ export default {
           checked: this.useResponsiveToolbar,
           callback: this.assignResponsiveUI,
         },
+        {
+          label: "Extra functions",
+          checkable: true,
+          checked: this.hasExtraFuncs,
+          callback: this.assignExtras,
+        },
+        {
+          label: "Retain selection",
+          checkable: true,
+          checked: this.combSelection,
+          callback: this.assignCombSelection,
+        },
+        {
+          label: "Live preview",
+          checkable: true,
+          enabled: false,
+          checked: false,
+          callback: this.assignPreview,
+        },
       ];
     },
     prefs() {
       return {
         useResponsiveToolbar: this.useResponsiveToolbar,
         enablePreview: this.enablePreview,
+        combSelection: this.combSelection,
+        hasExtraFuncs: this.hasExtraFuncs,
       };
+    },
+    dynamicButtonList() {
+      if (this.hasExtraFuncs) {
+        let list = [].concat(this.extraFuncs, this.list);
+        return [].concat(list, this.extraList);
+      } else {
+        return this.list;
+      }
     },
   },
   mounted() {
     this.reset();
     this.getPrefs();
+    // console.log(this.dynamicButtonList);
   },
   data: () => ({
     currentTool: "",
     useResponsiveToolbar: true,
     selectionLength: 0,
+    hasExtraFuncs: true,
+    combSelection: true,
     isGridDisplay: null,
-    enablePreview: true,
+    enablePreview: false,
     isAlt: false,
     inside: false,
     size: {
       width: window.innerWidth,
       height: window.innerHeight,
     },
+    extraFuncs: [
+      {
+        icon: "compound path",
+        code: 'app.executeMenuCommand("compoundPath")',
+      },
+      {
+        icon: "clipping mask",
+      },
+    ],
+    extraList: [
+      {
+        icon: "hard mix",
+        code: 'app.executeMenuCommand("Live Pathfinder Hard Mix")',
+      },
+      {
+        icon: "soft mix",
+        code: 'app.executeMenuCommand("Live Pathfinder Soft Mix")',
+      },
+    ],
     list: [
       {
         icon: "unite",
@@ -169,6 +220,14 @@ export default {
       },
       deep: true,
     },
+    currentTool(val) {
+      // console.log(val);
+      // if (this.selectionLength > 1) {
+      //   if (val && val.length) this.$refs.preview.grabSelection();
+      // } else {
+      //   console.log("NONE");
+      // }
+    },
   },
   methods: {
     copyAction(evt) {
@@ -186,16 +245,30 @@ export default {
     assignResponsiveUI(v, i, a) {
       this.useResponsiveToolbar = a;
     },
+    assignCombSelection(v, i, a) {
+      this.combSelection = a;
+    },
+    assignExtras(v, i, a) {
+      this.hasExtraFuncs = a;
+    },
+    assignPreview(v, i, a) {
+      this.enablePreview = a;
+    },
     async clickHandler(item, evt) {
-      if (/(minus\sfront|unite|intersect|exclude)/i.test(item))
-        if (evt.altKey) item += "-alt";
-      // console.log(item);
-      // console.log(evt);
-      if (this.selectionLength > 1) {
-        let result = await evalScript(`executeAction('${item}')`);
-        console.log(result);
+      let opts = this.prefs;
+      if (!item.code) {
+        let str = item.icon;
+        if (/(minus\sfront|unite|intersect|exclude)/i.test(str))
+          if (evt.altKey) str += "-alt";
+        if (this.selectionLength > 1) {
+          let result = await evalScript(
+            `executeAction('${str}', '${JSON.stringify(opts)}')`
+          );
+        } else {
+          // Error would be thrown
+        }
       } else {
-        console.log(`Can't do it`);
+        let result = await evalScript(item.code);
       }
     },
     setPrefs(value = null) {
@@ -255,5 +328,9 @@ export default {
 .button:active {
   background: var(--button-flat-active) !important;
   border-color: var(--button-flat-active-border);
+}
+
+.button {
+  transition: all 100ms var(--quint) 20ms;
 }
 </style>

@@ -19,7 +19,8 @@
     "core-js": "^3.1.2",
     "lokney": "latest",
     "starlette": "latest",
-    "vue": "^2.6.10"
+    "vue": "^2.6.10",
+    "vue-runtime-template-compiler": "^1.2.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.0.0",

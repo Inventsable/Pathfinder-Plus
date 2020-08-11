@@ -28,7 +28,7 @@
         </Lifecycle>
         <UI>
           <Type>Panel</Type>
-          <Menu>live-pathfinder</Menu>
+          <Menu>Pathfinder Plus</Menu>
           <Geometry>
             <Size>
               <Height>400</Height>
