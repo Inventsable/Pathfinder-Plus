@@ -6,11 +6,11 @@
     <!-- 
       New component that reports the scripting value of app.selection.length every 200ms 
     -->
-    <Watcher
+    <!-- <Watcher
       v-model="selectionLength"
       property="app.selection.length"
       :interval="200"
-    />
+    /> -->
     <Panel
       script-path="./host/[appName]"
       @mouseenter="inside = true"
@@ -104,6 +104,7 @@ export default {
         {
           label: "Responsive UI",
           checkable: true,
+          enabled: false,
           checked: this.useResponsiveToolbar,
           callback: this.assignResponsiveUI,
         },
@@ -153,7 +154,7 @@ export default {
   },
   data: () => ({
     currentTool: "",
-    useResponsiveToolbar: true,
+    useResponsiveToolbar: false,
     selectionLength: 0,
     showAnno: true,
     hasExtraFuncs: true,

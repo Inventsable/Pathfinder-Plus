@@ -31,11 +31,11 @@
           <Menu>Pathfinder Plus</Menu>
           <Geometry>
             <Size>
-              <Height>400</Height>
+              <Height>420</Height>
               <Width>280</Width>
             </Size>
             <MaxSize>
-              <Height>1000</Height>
+              <Height>420</Height>
               <Width>1000</Width>
             </MaxSize>
             <MinSize>
